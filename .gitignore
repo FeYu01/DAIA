@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Data
+data/real/*.jpg
+data/real/*.jpeg
+data/real/*.png
+data/ai_generated/*.jpg
+data/ai_generated/*.jpeg
+data/ai_generated/*.png
+
+# Keep directory structure but ignore images
+!data/real/.gitkeep
+!data/ai_generated/.gitkeep
+
+# Models
+models/*.pth
+models/checkpoints/*.pth
+
+# Outputs
+outputs/explanations/*.png
+outputs/explanations/*.jpg
+outputs/plots/*.png
+outputs/logs/*.log
+
+# Temporary files
+*.tmp
+temp_image.jpg
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/

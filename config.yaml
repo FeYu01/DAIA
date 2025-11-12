@@ -1,0 +1,79 @@
+# DAIA - AI-Generated Image Detection for Insurance Fraud
+# Configuration File
+
+# Data Configuration
+data:
+  data_dir: "/home/codespace/datasets/DAIA"
+  train_split: 0.70
+  val_split: 0.15
+  test_split: 0.15
+  image_size: 224  # ViT expects 224x224
+  batch_size: 16   # Adjust based on your GPU memory
+  num_workers: 4
+  
+  # Data Augmentation
+  augmentation:
+    enabled: true
+    horizontal_flip: 0.5
+    rotation_degrees: 15
+    brightness: 0.2
+    contrast: 0.2
+    saturation: 0.2
+    hue: 0.1
+
+# Model Configuration
+model:
+  name: "vit"  # Options: vit, resnet, efficientnet
+  pretrained_model: "google/vit-base-patch16-224-in21k"
+  num_classes: 2  # AI-generated vs Real
+  dropout: 0.1
+  freeze_backbone: false  # Set to true to freeze base model initially
+  freeze_epochs: 2  # Unfreeze after this many epochs
+
+# Training Configuration
+training:
+  epochs: 20
+  learning_rate: 0.0001  # Lower LR for fine-tuning
+  weight_decay: 0.01
+  optimizer: "adamw"  # Options: adam, adamw, sgd
+  scheduler: "cosine"  # Options: cosine, step, none
+  early_stopping_patience: 5
+  save_best_only: true
+  
+  # Class weights (if dataset imbalanced)
+  use_class_weights: false
+  class_weights: [1.0, 1.0]  # [Real, AI-generated]
+
+# XAI Configuration
+xai:
+  enabled: true
+  method: "attention"  # Options: attention, gradcam, both
+  save_explanations: true
+  visualization:
+    overlay_alpha: 0.4
+    colormap: "jet"  # Options: jet, hot, viridis
+    save_format: "png"
+
+# Inference Configuration
+inference:
+  confidence_threshold: 0.7
+  device: "cuda"  # Options: cuda, cpu, mps (for Mac M1/M2)
+
+# Paths
+paths:
+  model_save_dir: "./models"
+  checkpoint_dir: "./models/checkpoints"
+  log_dir: "./outputs/logs"
+  explanation_dir: "./outputs/explanations"
+  plot_dir: "./outputs/plots"
+
+# Logging
+logging:
+  level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR
+  save_logs: true
+  tensorboard: false  # Enable TensorBoard logging
+  wandb: false  # Enable Weights & Biases logging
+  wandb_project: "daia-insurance-fraud"
+
+# Random Seed
+seed: 42
