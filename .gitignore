@@ -36,12 +36,12 @@ ENV/
 .vscode/
 
 # Data
-data/real/*.jpg
-data/real/*.jpeg
-data/real/*.png
-data/ai_generated/*.jpg
-data/ai_generated/*.jpeg
-data/ai_generated/*.png
+#data/real/*.jpg
+#data/real/*.jpeg
+#data/real/*.png
+#data/ai_generated/*.jpg
+#data/ai_generated/*.jpeg
+#data/ai_generated/*.png
 
 # Keep directory structure but ignore images
 !data/real/.gitkeep
