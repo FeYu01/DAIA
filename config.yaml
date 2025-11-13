@@ -3,13 +3,15 @@
 
 # Data Configuration
 data:
-  data_dir: "/home/codespace/datasets/DAIA"
-  train_split: 0.70
-  val_split: 0.15
-  test_split: 0.15
+  data_dir: "./data"
   image_size: 224  # ViT expects 224x224
-  batch_size: 16   # Adjust based on your GPU memory
-  num_workers: 4
+  batch_size: 4    # Reduced from 16 to 4 for CPU training
+  num_workers: 2   # Reduced from 4 to 2
+  
+  # Data Split Ratios
+  train_split: 0.7    # 70% for training
+  val_split: 0.15     # 15% for validation
+  test_split: 0.15    # 15% for testing
   
   # Data Augmentation
   augmentation:
@@ -32,12 +34,12 @@ model:
 
 # Training Configuration
 training:
-  epochs: 20
+  epochs: 5          # Reduced from 20 for faster testing
   learning_rate: 0.0001  # Lower LR for fine-tuning
   weight_decay: 0.01
   optimizer: "adamw"  # Options: adam, adamw, sgd
   scheduler: "cosine"  # Options: cosine, step, none
-  early_stopping_patience: 5
+  early_stopping_patience: 3  # Reduced from 5
   save_best_only: true
   
   # Class weights (if dataset imbalanced)
