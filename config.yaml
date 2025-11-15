@@ -3,10 +3,13 @@
 
 # Data Configuration
 data:
-  data_dir: "./data"
-  image_size: 224  # ViT expects 224x224
-  batch_size: 4    # Reduced from 16 to 4 for CPU training
-  num_workers: 2   # Reduced from 4 to 2
+  # Full dataset location (moved out of repo to avoid large commits)
+  data_dir: "/home/codespace/datasets/DAIA"
+  image_size: 32  # Original image size (will be upsampled to 224 for ViT)
+  # Increased batch size for small 32x32 images
+  batch_size: 64
+  # Number of workers for DataLoader; increase on machines with more CPUs
+  num_workers: 4
   
   # Data Split Ratios
   train_split: 0.7    # 70% for training
@@ -26,20 +29,21 @@ data:
 # Model Configuration
 model:
   name: "vit"  # Options: vit, resnet, efficientnet
-  pretrained_model: "google/vit-base-patch16-224-in21k"
+  pretrained_model: "google/vit-base-patch32-224-in21k"
   num_classes: 2  # AI-generated vs Real
   dropout: 0.1
   freeze_backbone: false  # Set to true to freeze base model initially
   freeze_epochs: 2  # Unfreeze after this many epochs
+  # Note: 32x32 images will be upsampled to 224x224 using cubic interpolation
 
 # Training Configuration
 training:
-  epochs: 5          # Reduced from 20 for faster testing
+  epochs: 15         # Reduced for 32x32 images (faster convergence expected)
   learning_rate: 0.0001  # Lower LR for fine-tuning
   weight_decay: 0.01
   optimizer: "adamw"  # Options: adam, adamw, sgd
   scheduler: "cosine"  # Options: cosine, step, none
-  early_stopping_patience: 3  # Reduced from 5
+  early_stopping_patience: 5
   save_best_only: true
   
   # Class weights (if dataset imbalanced)

@@ -13,6 +13,7 @@ from torchvision import transforms
 from sklearn.model_selection import train_test_split
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
+import cv2
 
 
 class CarDamageDataset(Dataset):
@@ -86,6 +87,8 @@ def get_transforms(config: dict, is_training: bool = True):
     """
     Get albumentations transforms based on config
     
+    For 32x32 images: Directly resize to 224x224 using high-quality cubic interpolation
+    
     Args:
         config: Configuration dictionary
         is_training: Whether this is for training (applies augmentation)
@@ -96,29 +99,28 @@ def get_transforms(config: dict, is_training: bool = True):
     image_size = config['data']['image_size']
     aug_config = config['data']['augmentation']
     
+    # ViT requires 224x224, so we upsample from 32x32
+    target_size = 224
+    
     if is_training and aug_config['enabled']:
+        # Training transforms with light augmentation
         transform = A.Compose([
-            A.Resize(image_size, image_size),
+            A.Resize(height=target_size, width=target_size, interpolation=cv2.INTER_CUBIC),
             A.HorizontalFlip(p=aug_config['horizontal_flip']),
-            A.Rotate(limit=aug_config['rotation_degrees'], p=0.5),
+            A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=5, p=0.3),
             A.ColorJitter(
                 brightness=aug_config['brightness'],
                 contrast=aug_config['contrast'],
                 saturation=aug_config['saturation'],
                 hue=aug_config['hue'],
-                p=0.5
+                p=0.4
             ),
-            A.GaussNoise(p=0.2),
-            A.OneOf([
-                A.MotionBlur(p=0.2),
-                A.MedianBlur(blur_limit=3, p=0.1),
-                A.Blur(blur_limit=3, p=0.1),
-            ], p=0.2),
+            A.GaussNoise(var_limit=(5.0, 15.0), p=0.2),
         ])
     else:
-        # Validation/Test transforms (no augmentation)
+        # Validation/Test transforms: simple resize
         transform = A.Compose([
-            A.Resize(image_size, image_size),
+            A.Resize(height=target_size, width=target_size, interpolation=cv2.INTER_CUBIC),
         ])
     
     return transform
@@ -127,6 +129,10 @@ def get_transforms(config: dict, is_training: bool = True):
 def load_dataset(data_dir: str, config: dict) -> Tuple[List[str], List[int]]:
     """
     Load dataset from directory structure
+    
+    Supports two structures:
+    1. Pre-split: data_dir/train/REAL, data_dir/train/FAKE, data_dir/test/REAL, data_dir/test/FAKE
+    2. Combined: data_dir/real, data_dir/ai_generated
     
     Args:
         data_dir: Root data directory
@@ -138,25 +144,82 @@ def load_dataset(data_dir: str, config: dict) -> Tuple[List[str], List[int]]:
     image_paths = []
     labels = []
     
-    # Load real images (label=0)
-    real_dir = os.path.join(data_dir, 'real')
-    if os.path.exists(real_dir):
-        for img_file in os.listdir(real_dir):
-            if img_file.lower().endswith(('.png', '.jpg', '.jpeg')):
-                image_paths.append(os.path.join(real_dir, img_file))
-                labels.append(0)  # Real
+    # Debug: Print data directory
+    print(f"DEBUG: Checking data_dir = {data_dir}")
+    print(f"DEBUG: Directory exists? {os.path.exists(data_dir)}")
+    if os.path.exists(data_dir):
+        print(f"DEBUG: Contents of {data_dir}:")
+        for item in os.listdir(data_dir):
+            print(f"  - {item}")
     
-    # Load AI-generated images (label=1)
-    ai_dir = os.path.join(data_dir, 'ai_generated')
-    if os.path.exists(ai_dir):
-        for img_file in os.listdir(ai_dir):
+    # Check if pre-split structure exists (train/test folders)
+    # Special case: Google Drive created "REAL (1)" for train folder
+    train_real = os.path.join(data_dir, 'train', 'REAL')
+    if not os.path.exists(train_real):
+        train_real = os.path.join(data_dir, 'train', 'REAL (1)')
+    
+    train_fake = os.path.join(data_dir, 'train', 'FAKE')
+    test_real = os.path.join(data_dir, 'test', 'REAL')
+    test_fake = os.path.join(data_dir, 'test', 'FAKE')
+    
+    print(f"DEBUG: Checking folders:")
+    print(f"  train_real: {train_real} -> exists={os.path.exists(train_real)}")
+    print(f"  train_fake: {train_fake} -> exists={os.path.exists(train_fake)}")
+    print(f"  test_real: {test_real} -> exists={os.path.exists(test_real)}")
+    print(f"  test_fake: {test_fake} -> exists={os.path.exists(test_fake)}")
+    
+    has_presplit = all(os.path.exists(p) for p in [train_real, train_fake, test_real, test_fake])
+    
+    if has_presplit:
+        # Load from pre-split structure
+        print("Detected pre-split train/test structure")
+        
+        # Load train REAL (label=0)
+        for img_file in os.listdir(train_real):
             if img_file.lower().endswith(('.png', '.jpg', '.jpeg')):
-                image_paths.append(os.path.join(ai_dir, img_file))
-                labels.append(1)  # AI-generated
+                image_paths.append(os.path.join(train_real, img_file))
+                labels.append(0)
+        
+        # Load train FAKE (label=1)
+        for img_file in os.listdir(train_fake):
+            if img_file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                image_paths.append(os.path.join(train_fake, img_file))
+                labels.append(1)
+        
+        # Load test REAL (label=0)
+        for img_file in os.listdir(test_real):
+            if img_file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                image_paths.append(os.path.join(test_real, img_file))
+                labels.append(0)
+        
+        # Load test FAKE (label=1)
+        for img_file in os.listdir(test_fake):
+            if img_file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                image_paths.append(os.path.join(test_fake, img_file))
+                labels.append(1)
+    else:
+        # Load from combined structure (old behavior)
+        print("Using combined real/ai_generated structure")
+        
+        # Load real images (label=0)
+        real_dir = os.path.join(data_dir, 'real')
+        if os.path.exists(real_dir):
+            for img_file in os.listdir(real_dir):
+                if img_file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                    image_paths.append(os.path.join(real_dir, img_file))
+                    labels.append(0)  # Real
+        
+        # Load AI-generated images (label=1)
+        ai_dir = os.path.join(data_dir, 'ai_generated')
+        if os.path.exists(ai_dir):
+            for img_file in os.listdir(ai_dir):
+                if img_file.lower().endswith(('.png', '.jpg', '.jpeg')):
+                    image_paths.append(os.path.join(ai_dir, img_file))
+                    labels.append(1)  # AI-generated
     
     print(f"Loaded {len(image_paths)} images:")
     print(f"  - Real: {labels.count(0)}")
-    print(f"  - AI-generated: {labels.count(1)}")
+    print(f"  - AI-generated/FAKE: {labels.count(1)}")
     
     return image_paths, labels
 
