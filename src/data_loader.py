@@ -107,7 +107,7 @@ def get_transforms(config: dict, is_training: bool = True):
         transform = A.Compose([
             A.Resize(height=target_size, width=target_size, interpolation=cv2.INTER_CUBIC),
             A.HorizontalFlip(p=aug_config['horizontal_flip']),
-            A.ShiftScaleRotate(shift_limit=0.05, scale_limit=0.05, rotate_limit=5, p=0.3),
+            A.Affine(scale=(0.95, 1.05), translate_percent=(0.05, 0.05), rotate=(-5, 5), p=0.3),
             A.ColorJitter(
                 brightness=aug_config['brightness'],
                 contrast=aug_config['contrast'],
@@ -115,7 +115,7 @@ def get_transforms(config: dict, is_training: bool = True):
                 hue=aug_config['hue'],
                 p=0.4
             ),
-            A.GaussNoise(var_limit=(5.0, 15.0), p=0.2),
+            A.GaussNoise(var_limit=(5.0, 20.0), mean=0, p=0.2),
         ])
     else:
         # Validation/Test transforms: simple resize
