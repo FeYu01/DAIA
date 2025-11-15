@@ -153,11 +153,7 @@ def load_dataset(data_dir: str, config: dict) -> Tuple[List[str], List[int]]:
             print(f"  - {item}")
     
     # Check if pre-split structure exists (train/test folders)
-    # Special case: Google Drive created "REAL (1)" for train folder
     train_real = os.path.join(data_dir, 'train', 'REAL')
-    if not os.path.exists(train_real):
-        train_real = os.path.join(data_dir, 'train', 'REAL (1)')
-    
     train_fake = os.path.join(data_dir, 'train', 'FAKE')
     test_real = os.path.join(data_dir, 'test', 'REAL')
     test_fake = os.path.join(data_dir, 'test', 'FAKE')
