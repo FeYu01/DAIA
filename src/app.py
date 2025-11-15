@@ -30,19 +30,19 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS
+# Custom CSS — improved contrast for readability
 st.markdown("""
     <style>
     .main-header {
         font-size: 3rem;
-        font-weight: bold;
-        color: #1f77b4;
+        font-weight: 700;
+        color: #1f4f72; /* deeper blue for contrast */
         text-align: center;
         margin-bottom: 1rem;
     }
     .sub-header {
         font-size: 1.2rem;
-        color: #666;
+        color: #333333; /* darker gray for readability */
         text-align: center;
         margin-bottom: 2rem;
     }
@@ -51,24 +51,39 @@ st.markdown("""
         padding: 1rem;
         border-radius: 0.5rem;
         border-left: 4px solid #1f77b4;
+        color: #0b2330; /* dark text for contrast */
+    }
+    .metric-card h4, .metric-card p {
+        color: #0b2330;
+        margin: 0;
     }
     .warning-box {
         background-color: #fff3cd;
         padding: 1rem;
         border-radius: 0.5rem;
         border-left: 4px solid #ffc107;
+        color: #5f3d06; /* dark brown text */
     }
     .success-box {
         background-color: #d4edda;
         padding: 1rem;
         border-radius: 0.5rem;
         border-left: 4px solid #28a745;
+        color: #145214; /* dark green text */
     }
     .danger-box {
         background-color: #f8d7da;
         padding: 1rem;
         border-radius: 0.5rem;
         border-left: 4px solid #dc3545;
+        color: #6b0217; /* dark red text */
+    }
+    /* Buttons and captions - ensure visible on light backgrounds */
+    .stButton>button {
+        color: #ffffff !important;
+    }
+    .stCaption, .stText, .stMarkdown {
+        color: #222222;
     }
     </style>
 """, unsafe_allow_html=True)

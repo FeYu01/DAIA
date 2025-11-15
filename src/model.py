@@ -34,6 +34,20 @@ class ViTClassifier(nn.Module):
         
         # Load pre-trained ViT
         self.vit = ViTModel.from_pretrained(model_name)
+        # Ensure the ViT model can return attention weights for XAI.
+        # Some transformer implementations require setting the attention implementation
+        # to 'eager' to enable output_attentions. Try to set it if available.
+        try:
+            if hasattr(self.vit, 'set_attn_implementation'):
+                self.vit.set_attn_implementation('eager')
+        except Exception:
+            # If the method is not available or fails, continue without crashing.
+            pass
+        # Also ensure config allows returning attentions by default
+        try:
+            self.vit.config.output_attentions = True
+        except Exception:
+            pass
         self.hidden_size = self.vit.config.hidden_size
         
         # Freeze backbone if specified
