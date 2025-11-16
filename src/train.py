@@ -6,32 +6,6 @@ Implements training loop with validation, metrics tracking, and model checkpoint
 import sys
 import shutil
 
-# Preflight dependency check: detect common missing packages and give actionable guidance.
-def _preflight_check():
-    missing = []
-    for pkg in ('transformers', 'torch', 'albumentations'):
-        try:
-            __import__(pkg)
-        except Exception:
-            missing.append(pkg)
-
-    if missing:
-        print('\nERROR: Missing Python packages detected:', ', '.join(missing))
-        print('Current Python executable:', sys.executable)
-        print('\nRecommended fixes:')
-        print(' 1) Activate the project virtualenv and run the script:')
-        print('      source venv/bin/activate')
-        print('      python src/train.py')
-        print('\n 2) Or run using the project venv interpreter directly:')
-        print('      /workspaces/DAIA/venv/bin/python src/train.py')
-        print('\n 3) Or install the missing packages into the current interpreter:')
-        print('      pip install ' + ' '.join(missing))
-        print('\nIf you want, I can generate a `requirements.txt` from the venv for reproducible installs.')
-        sys.exit(1)
-
-
-_preflight_check()
-
 import matplotlib
 matplotlib.use('Agg')  # Set non-interactive backend for headless environments
 
