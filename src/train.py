@@ -19,7 +19,11 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 import numpy as np
-import seaborn as sns
+try:
+    import seaborn as sns
+    HAS_SEABORN = True
+except (ImportError, ValueError):
+    HAS_SEABORN = False
 
 from utils import (
     load_config, set_seed, setup_logging, get_device,
@@ -405,11 +409,28 @@ class Trainer:
         plt.figure(figsize=(8, 6))
         
         class_names = ['Real', 'AI-Generated']
-        sns.heatmap(
-            cm, annot=True, fmt='d', cmap='Blues',
-            xticklabels=class_names, yticklabels=class_names,
-            cbar_kws={'label': 'Count'}
-        )
+        
+        if HAS_SEABORN:
+            sns.heatmap(
+                cm, annot=True, fmt='d', cmap='Blues',
+                xticklabels=class_names, yticklabels=class_names,
+                cbar_kws={'label': 'Count'}
+            )
+        else:
+            # Fallback: use matplotlib's imshow
+            plt.imshow(cm, interpolation='nearest', cmap='Blues')
+            plt.colorbar(label='Count')
+            
+            # Add annotations
+            thresh = cm.max() / 2.
+            for i in range(cm.shape[0]):
+                for j in range(cm.shape[1]):
+                    plt.text(j, i, format(cm[i, j], 'd'),
+                            ha="center", va="center",
+                            color="white" if cm[i, j] > thresh else "black")
+            
+            plt.xticks([0, 1], class_names)
+            plt.yticks([0, 1], class_names)
         
         plt.xlabel('Predicted Label', fontsize=12)
         plt.ylabel('True Label', fontsize=12)
